@@ -1,32 +1,84 @@
-# Ashish's Assistant
+🚀 Ashish AI Assistant
+AI-Powered Web Chatbot using Puter.js API
 
-A modern, responsive AI chat assistant powered by Gemini 3 Flash.
+🌐 Live Demo: https://ashish-s-assistant.vercel.app/
 
-## Deployment to Vercel
+📂 GitHub Repository: https://github.com/ashishgoswami07/ashish-s-assistant
 
-To deploy this project to Vercel, follow these steps:
+🧠 Overview
 
-1. **Push to GitHub**: Export your project to a GitHub repository from the AI Studio interface.
-2. **Import to Vercel**: Go to [Vercel](https://vercel.com) and import your new repository.
-3. **Configure Environment Variables**:
-   - In the Vercel project settings, go to the **Environment Variables** tab.
-   - Add a new variable named `GEMINI_API_KEY`.
-   - Set the value to your Google Gemini API key (you can get one from [Google AI Studio](https://aistudio.google.com/app/apikey)).
-   - **Important**: Make sure the variable is available for **Production**, **Preview**, and **Development** environments.
-4. **Deploy**: Vercel will automatically detect the Vite configuration and build your project.
+Ashish AI Assistant is a modern web-based chatbot designed to deliver intelligent responses using AI integration. Built with a fast frontend stack and deployed on Vercel, this project demonstrates real-world skills in API integration, performance optimization, and deployment workflows.
 
-## Local Development
+✨ Features
+💬 Real-time conversational chat interface
+⚡ Ultra-fast performance using Vite
+🧠 AI-powered responses via Puter.js API
+🌍 Live deployed application
+📱 Fully responsive design
+🛠️ Tech Stack
+Category	Technology
+Frontend	HTML, TypeScript
+Build Tool	Vite
+AI Integration	Puter.js API
+Deployment	Vercel
+📸 Live Demo
 
-1. Clone the repository.
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create a `.env` file and add your `GEMINI_API_KEY`:
-   ```env
-   GEMINI_API_KEY=your_api_key_here
-   ```
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
+👉 Try it here:
+🔗 https://ashish-s-assistant.vercel.app/
+
+⚙️ Installation & Setup
+# Clone the repository
+git clone https://github.com/ashishgoswami07/ashish-s-assistant.git
+
+# Navigate into the project
+cd ashish-s-assistant
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+🔐 Environment Variables
+
+Create a .env file in the root directory:
+
+PUTER_API_KEY=your_api_key_here
+📂 Project Structure
+├── src/                # Core chatbot logic
+├── index.html          # Main UI entry point
+├── package.json        # Dependencies & scripts
+├── vite.config.ts      # Vite configuration
+├── tsconfig.json       # TypeScript config
+├── vercel.json         # Deployment setup
+├── .env.example        # Environment template
+└── README.md
+🚀 Deployment
+
+This project is deployed using Vercel for fast and scalable hosting.
+
+To deploy your own version:
+
+Fork this repository
+Connect to Vercel
+Add environment variables
+Deploy
+🎯 What This Project Shows
+Practical AI API integration
+Clean and scalable frontend architecture
+Real-world deployment pipeline
+Performance-focused web development
+Portfolio-ready project implementation
+🔮 Future Improvements
+💾 Chat history storage
+🔐 User authentication
+🎤 Voice interaction
+⚡ Streaming AI responses
+🎨 Advanced UI animations
+👨‍💻 Author
+
+Ashish Goswami
+🎓 B.Tech (3rd Year) | Aspiring Software Engineer
+
+📄 License
+
+This project is licensed under the MIT License.
