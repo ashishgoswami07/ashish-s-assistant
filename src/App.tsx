@@ -4,7 +4,9 @@
  */
 
 import { useState, useRef, useEffect } from "react";
-import { GoogleGenAI, GenerateContentResponse, ThinkingLevel } from "@google/genai";
+
+// Puter.js is loaded globally via <script> in index.html
+declare const puter: any;
 import { 
   Send, 
   Bot, 
@@ -39,9 +41,7 @@ interface ChatSession {
   createdAt: Date;
 }
 
-// AI Initialization
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
-
+// Types
 export default function App() {
   // State
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
@@ -123,36 +123,59 @@ export default function App() {
     setInput("");
     setIsLoading(true);
 
-    try {
-      const chat = ai.chats.create({
-        model: "gemini-3-flash-preview",
-        config: {
-          systemInstruction: "You are Ashish's Assistant, a helpful, creative, and intelligent AI assistant. You provide clear, concise, and accurate information. You use markdown for formatting when appropriate.",
-          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW }
-        },
-      });
+    const makeRequest = async (): Promise<string> => {
+      const currentMessages = updatedSessions.find(s => s.id === currentSessionId)?.messages || [];
 
-      // Prepare history for the chat session
-      // Note: In a real app, you'd pass the full history, but for simplicity we'll just send the current message
-      // and let the model handle the context if we were using a persistent chat object.
-      // For this implementation, we'll use sendMessageStream.
-      
-      const streamResponse = await chat.sendMessageStream({
-        message: userMessage.content,
-      });
+      // Build conversation history for Puter
+      const systemPrompt = "You are Ashish's Assistant, a helpful, creative, and intelligent AI assistant. You provide clear, concise, and accurate information. You use markdown for formatting when appropriate.";
 
-      let assistantContent = "";
+      const history = currentMessages.slice(0, -1).map(m => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.content,
+      }));
+
+      const messages = [
+        { role: "system", content: systemPrompt },
+        ...history,
+        { role: "user", content: userMessage.content },
+      ];
+
+      setStreamingContent("⏳ Thinking...");
+
+      const response = await puter.ai.chat(messages, { model: "gpt-4o-mini" });
+
       setStreamingContent("");
 
-      for await (const chunk of streamResponse) {
-        const text = (chunk as GenerateContentResponse).text;
-        if (text) {
-          assistantContent += text;
-          setStreamingContent(assistantContent);
+      // Parse response — puter returns different shapes depending on model
+      const text =
+        typeof response === "string"
+          ? response
+          : response?.message?.content
+          ?? response?.choices?.[0]?.message?.content
+          ?? response?.text
+          ?? "";
+
+      return text || "No response received.";
+    };
+
+    try {
+      let assistantContent = "";
+      try {
+        assistantContent = await makeRequest();
+      } catch (err: any) {
+        const is429 = err?.message?.includes("429") || err?.status === 429;
+        const isDailyQuota = err?.message?.includes("PerDay") || err?.message?.includes("per day");
+        // Only retry for per-minute limits, NOT daily quota exhaustion
+        if (is429 && !isDailyQuota) {
+          setStreamingContent("⏳ Rate limited — retrying in 15 seconds...");
+          await new Promise(r => setTimeout(r, 15000));
+          setStreamingContent("");
+          assistantContent = await makeRequest();
+        } else {
+          throw err;
         }
       }
 
-      // Once streaming is done, add the final message to the session
       const assistantMessage: Message = {
         id: Date.now().toString(),
         role: "assistant",
@@ -162,24 +185,27 @@ export default function App() {
 
       setSessions(prev => prev.map(s => {
         if (s.id === currentSessionId) {
-          return {
-            ...s,
-            messages: [...s.messages, assistantMessage]
-          };
+          return { ...s, messages: [...s.messages, assistantMessage] };
         }
         return s;
       }));
-      
+
       setStreamingContent("");
       setIsLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("AI Error:", error);
       setStreamingContent("");
       setIsLoading(false);
+
+      const is429 = error?.message?.includes("429") || error?.status === 429;
+      const friendlyMsg = is429
+        ? "⚠️ **API quota exceeded.** Your free-tier daily limit has been reached.\n\n**To fix this:**\n1. Go to [Google AI Studio](https://aistudio.google.com/apikey) and create a **new API key**\n2. Update the `.env` file with the new key\n3. Restart the dev server"
+        : `❌ Error: ${error?.message || "Unknown error occurred."}`;
+
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         role: "assistant",
-        content: "I'm sorry, I encountered an error while processing your request. Please try again.",
+        content: friendlyMsg,
         timestamp: new Date()
       };
       setSessions(prev => prev.map(s => {
@@ -303,7 +329,7 @@ export default function App() {
           
           <div className="flex items-center gap-4">
             <div className="px-3 py-1 rounded-full bg-zinc-800 border border-zinc-700 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hidden sm:block">
-              Gemini 3 Flash
+              GPT-4o Mini · Puter
             </div>
             <a href="https://github.com/ashishgoswami07" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-zinc-100 transition-colors">
               <Github className="w-5 h-5" />
@@ -499,7 +525,7 @@ export default function App() {
                     <div className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Sparkles className="w-5 h-5 text-blue-400" />
-                        <span className="font-medium">Gemini 3 Flash</span>
+                        <span className="font-medium">GPT-4o Mini (via Puter)</span>
                       </div>
                       <span className="text-[10px] font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded-full uppercase tracking-widest">Active</span>
                     </div>
